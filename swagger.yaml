@@ -1,0 +1,296 @@
+openapi: 3.0.0
+info:
+  title: Task Management REST API
+  description: |-
+    A comprehensive RESTful API for managing tasks natively built using Express.js and MongoDB. 
+    
+    ### Role Based Access Control
+    - **User**: Standard users can only create, read, update, and delete their own tasks.
+    - **Admin**: Administrators have unrestricted access to read, update, and delete ALL tasks in the system.
+    
+    ### Authentication
+    The API uses JWT (JSON Web Tokens) for authentication. Make a request to `/auth/login` and copy the resulting `token`. Then, authorize subsequent requests by adding the `Authorization` header formatted as: `Bearer <your_token>`.
+  version: 1.0.0
+  contact:
+    name: API Architect
+servers:
+  - url: 'http://localhost:5000/api/v1'
+    description: Local Development Server
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 65123abc456def7890123456
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        role:
+          type: string
+          enum: [user, admin]
+          example: user
+      required:
+        - email
+        - role
+    Task:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 65124def456abc7890123456
+        title:
+          type: string
+          example: "Finalize Quarterly Report"
+        description:
+          type: string
+          example: "Compile financial data streams and structure the slide deck ahead of the team meeting."
+        status:
+          type: string
+          enum: [pending, in_progress, completed]
+          example: in_progress
+        userId:
+          type: string
+          description: "ID of the user who owns the task"
+          example: 65123abc456def7890123456
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - title
+        - description
+        - status
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Invalid email or password"
+paths:
+  /auth/register:
+    post:
+      summary: Register a new user
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: newuser@example.com
+                password:
+                  type: string
+                  format: password
+                  minLength: 6
+                  example: securepassword123
+                role:
+                  type: string
+                  enum: [user, admin]
+                  example: user
+                  description: "Optional payload. Defaults to user."
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  email:
+                    type: string
+                  role:
+                    type: string
+                  token:
+                    type: string
+                    description: JWT Authentication Token
+        '400':
+          description: Validation error or User already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /auth/login:
+    post:
+      summary: Authenticate User & Obtain Token
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+                password:
+                  type: string
+                  format: password
+                  example: securepassword123
+      responses:
+        '200':
+          description: Successful authentication
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  email:
+                    type: string
+                  role:
+                    type: string
+                  token:
+                    type: string
+                    description: Bearer verification Token for Authorization headers
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /tasks:
+    get:
+      summary: Retrieve tasks
+      description: Returns a list of tasks. Standard users retrieve an array comprised strictly of self-authored tasks. Admins retrieve all system workloads alongside populated publisher details.
+      tags:
+        - Tasks
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: A list of tasks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Task'
+        '401':
+          description: Unauthorized (Token missing, invalid, or expired)
+    post:
+      summary: Create a newly assigned task
+      tags:
+        - Tasks
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - description
+              properties:
+                title:
+                  type: string
+                  example: "Write End to End Integration Tests"
+                description:
+                  type: string
+                  example: "Develop robust Cypress test suites covering authentication and payload validation schemas."
+                status:
+                  type: string
+                  enum: [pending, in_progress, completed]
+                  example: pending
+      responses:
+        '201':
+          description: Task generated and assigned to user.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '400':
+          description: Validation Payload configuration error by Zod Schema
+  /tasks/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+        description: The targeted MongoDB Task ObjectId mapping to the unique file.
+    put:
+      summary: Modify or complete an existing task
+      description: Reconfigure task body values or statuses. Requires matching ownership tokens or administrative tokens.
+      tags:
+        - Tasks
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  example: "Updated Metric Title"
+                description:
+                  type: string
+                  example: "Refactored text values..."
+                status:
+                  type: string
+                  enum: [pending, in_progress, completed]
+                  example: completed
+      responses:
+        '200':
+          description: Task updated dynamically.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '403':
+          description: Forbidden (Token author restricts access to this ID mapping)
+        '404':
+          description: Task Entity mapping ID missing.
+    delete:
+      summary: Remove a task completely
+      description: Permanent purge of a specific Task Entity. Requires identical Token ID tracking or broad Administrator override privileges.
+      tags:
+        - Tasks
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Deletion confirmation via JSON.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Task removed successfully"
+        '403':
+          description: Privilege collision - Modifying ID belonging to foreign user.
+        '404':
+          description: Origin file unable to be verified or nonexistent.

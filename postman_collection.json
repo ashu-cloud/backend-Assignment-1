@@ -1,0 +1,105 @@
+{
+  "info": {
+    "name": "Task Application API (Detailed View)",
+    "description": "Comprehensive Postman API Collection mapping the Full-Stack Task Assignment structures natively built under Express.js and MongoDB.\n\nKey Mechanisms:\n- Auth Tokens (`Bearer Token` system required for Task endpoints)\n- Payload Validation (Strict parameters checking Zod boundaries natively)\n- Data Sanitization (Removes __v and mapping _id directly out to explicit 'id' variable definitions)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Authentication & Context",
+      "description": "Entry points for validating permissions and onboarding explicit identities into the Database System.",
+      "item": [
+        {
+          "name": "1. User Registration",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin1@company.com\",\n  \"password\": \"SecureString9X!\",\n  \"role\": \"admin\"\n}"
+            },
+            "url": { "raw": "http://127.0.0.1:5000/api/v1/auth/register", "protocol": "http", "host": ["127", "0", "0", "1"], "port": "5000", "path": ["api", "v1", "auth", "register"] },
+            "description": "Registers standard identities under explicit roles (`admin` or `user`). A `token` response containing the signed symmetric key payload is returned natively upon success."
+          }
+        },
+        {
+          "name": "2. Remote Identity Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin1@company.com\",\n  \"password\": \"SecureString9X!\"\n}"
+            },
+            "url": { "raw": "http://127.0.0.1:5000/api/v1/auth/login", "protocol": "http", "host": ["127", "0", "0", "1"], "port": "5000", "path": ["api", "v1", "auth", "login"] },
+            "description": "Validates Bcrypt hashed configurations stored in the Database cluster and regenerates symmetric `token` authentication mechanisms bound across consecutive calls."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Task Object Architecture",
+      "description": "Secured endpoints validating against `Bearer Token` headers implicitly carrying identity information across all transaction layers.",
+      "item": [
+        {
+          "name": "3. Query Assorted Active Tasks",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer <YOUR_JWT_TOKEN>" }
+            ],
+            "url": { "raw": "http://127.0.0.1:5000/api/v1/tasks", "protocol": "http", "host": ["127", "0", "0", "1"], "port": "5000", "path": ["api", "v1", "tasks"] },
+            "description": "Depending directly on the JSON Web Token roles contained within the Authorization header:\n- `user` payload decodes mapping exclusively arrays instantiated natively by this specific origin requestor.\n- `admin` explicitly bypasses document constraint filtering, populating completely untampered lists comprising every tracked task nested underneath Database Clusters."
+          }
+        },
+        {
+          "name": "4. Task Creation Schema",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer <YOUR_JWT_TOKEN>" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Implement Microservices Infrastructure\",\n  \"description\": \"Convert Monolithic structure handling Authentication layers natively separated onto internal RabbitMQ exchanges.\",\n  \"status\": \"pending\"\n}"
+            },
+            "url": { "raw": "http://127.0.0.1:5000/api/v1/tasks", "protocol": "http", "host": ["127", "0", "0", "1"], "port": "5000", "path": ["api", "v1", "tasks"] },
+            "description": "Binds mapping natively bridging `userId` implicitly decoded out from Authorization headers with Title parameters."
+          }
+        },
+        {
+          "name": "5. Modify Document State",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer <YOUR_JWT_TOKEN>" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"completed\",\n  \"title\": \"Implement Microservices Infrastructure (Done)\"\n}"
+            },
+            "url": { "raw": "http://127.0.0.1:5000/api/v1/tasks/65123abc456def7890123456", "protocol": "http", "host": ["127", "0", "0", "1"], "port": "5000", "path": ["api", "v1", "tasks", "65123abc456def7890123456"] },
+            "description": "Overwrites partial configuration elements mapped out across specified ObjectIDs. Validates collision prevention exclusively barring unapproved User manipulation if identity mismatches."
+          }
+        },
+        {
+          "name": "6. Deletion Sequence",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer <YOUR_JWT_TOKEN>" }
+            ],
+            "url": { "raw": "http://127.0.0.1:5000/api/v1/tasks/65123abc456def7890123456", "protocol": "http", "host": ["127", "0", "0", "1"], "port": "5000", "path": ["api", "v1", "tasks", "65123abc456def7890123456"] },
+            "description": "Permanent purge mapping matching database entity instances out natively from Document storage parameters."
+          }
+        }
+      ]
+    }
+  ]
+}
